@@ -1,6 +1,6 @@
 {
   "name": "escpos-template",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Library to process json template for thermal printers coupons.",
   "author": "GrandChef Team <desenvolvimento@grandchef.com.br>",
   "license": "MIT",
@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "escpos-buffer": "^1.0.0",
+    "sprintf-js": "^1.1.2",
     "tslib": "~1.10.0"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import { Printer, Align, Style } from 'escpos-buffer'
+import { sprintf } from 'sprintf-js'
 
 export abstract class Processor {
   private printer: Printer
@@ -97,6 +98,14 @@ export abstract class Processor {
       }
       return undefined
     }
+    if ('format' in statement) {
+      let format = this.resolve('format')
+      if (typeof format !== 'function') {
+        format = sprintf
+      }
+      text = format(statement['format'], text);
+    }
+    text = text + ''
     let whitespace = ' '
     if ('whitespace' in statement) {
       whitespace = statement['whitespace']
@@ -132,13 +141,13 @@ export abstract class Processor {
         if (result === undefined) {
           return
         }
-        text += result
+        text += `${result}`
         if (text.length > columns) {
           // calculate free new lines spacing
           columns = width - text.length % width
         } else {
           // same line space remaining
-          columns -= result.length
+          columns -= `${result}`.length
         }
       })
       return text
@@ -154,9 +163,9 @@ export abstract class Processor {
     for (let i = 0; i < count; i++) {
       const line = this.line(statement, columns, style, width, level + 1)
       if (level > 0) {
-        text = (text || '') + line
+        text = (text || '') + (line || '') + ''
       } else {
-        this.writeln(line, style, width)
+        this.writeln(line === undefined ? line : line + '', style, width)
       }
       this.setCursor(statement['list'], i + 1)
     }
@@ -195,7 +204,7 @@ export abstract class Processor {
         }
       }
       const text = this.statement(stmt, columns, style, columns, 0)
-      this.writeln(text, style, columns)
+      this.writeln(text === undefined ? text : text + '', style, columns)
     })
   }
 }

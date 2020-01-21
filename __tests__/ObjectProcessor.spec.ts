@@ -251,3 +251,36 @@ describe('print coupon from object data source', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_image', connection.buffer()))
   })
 })
+
+describe('print coupon formatted', () => {
+  it('format using sprintf', () => {
+    const template = [
+      { format: '%4s', items: '1/2' },
+      { format: '%06d', items: 'code' },
+    ]
+    const data = { code: 123 }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sprintf', connection.buffer()))
+  })
+
+  it('format using custom function', () => {
+    const template = [
+      { format: '$ ', items: '3.60' },
+      { format: 'QTD: ', items: ['quantity', 'g'] },
+    ]
+    const data = {
+      quantity: 30,
+      format (format: string, param: any) {
+        return format + `${param}`
+      }
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_custom_format', connection.buffer()))
+  })
+})

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const escpos_buffer_1 = require("escpos-buffer");
+const sprintf_js_1 = require("sprintf-js");
 class Processor {
     constructor(printer, template) {
         this.printer = printer;
@@ -68,6 +69,14 @@ class Processor {
             }
             return undefined;
         }
+        if ('format' in statement) {
+            let format = this.resolve('format');
+            if (typeof format !== 'function') {
+                format = sprintf_js_1.sprintf;
+            }
+            text = format(statement['format'], text);
+        }
+        text = text + '';
         let whitespace = ' ';
         if ('whitespace' in statement) {
             whitespace = statement['whitespace'];
@@ -100,12 +109,12 @@ class Processor {
                 if (result === undefined) {
                     return;
                 }
-                text += result;
+                text += `${result}`;
                 if (text.length > columns) {
                     columns = width - text.length % width;
                 }
                 else {
-                    columns -= result.length;
+                    columns -= `${result}`.length;
                 }
             });
             return text;
@@ -121,10 +130,10 @@ class Processor {
         for (let i = 0; i < count; i++) {
             const line = this.line(statement, columns, style, width, level + 1);
             if (level > 0) {
-                text = (text || '') + line;
+                text = (text || '') + (line || '') + '';
             }
             else {
-                this.writeln(line, style, width);
+                this.writeln(line === undefined ? line : line + '', style, width);
             }
             this.setCursor(statement['list'], i + 1);
         }
@@ -162,7 +171,7 @@ class Processor {
                 }
             }
             const text = this.statement(stmt, columns, style, columns, 0);
-            this.writeln(text, style, columns);
+            this.writeln(text === undefined ? text : text + '', style, columns);
         });
     }
 }
