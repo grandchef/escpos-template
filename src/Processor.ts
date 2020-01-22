@@ -99,11 +99,7 @@ export abstract class Processor {
       return undefined
     }
     if ('format' in statement) {
-      let format = this.resolve('format')
-      if (typeof format !== 'function') {
-        format = sprintf
-      }
-      text = format(statement['format'], text);
+      text = sprintf(statement['format'], text);
     }
     text = text + ''
     let whitespace = ' '
@@ -135,13 +131,12 @@ export abstract class Processor {
       return this.resolve(statement)
     }
     if (Array.isArray(statement)) {
-      let text = ''
-      statement.forEach((stmt: any) => {
+      return statement.reduce((text: string, stmt: any) => {
         const result = this.statement(stmt, columns, style, width, level)
         if (result === undefined) {
-          return
+          return text
         }
-        text += `${result}`
+        text = (text || '') + `${result}`
         if (text.length > columns) {
           // calculate free new lines spacing
           columns = width - text.length % width
@@ -149,8 +144,8 @@ export abstract class Processor {
           // same line space remaining
           columns -= `${result}`.length
         }
-      })
-      return text
+        return text
+      }, undefined)
     }
     if ('required' in statement && !this.isAvailable(statement['required'])) {
       return undefined
@@ -162,10 +157,10 @@ export abstract class Processor {
     const count = this.setCursor(statement['list'], 0)
     for (let i = 0; i < count; i++) {
       const line = this.line(statement, columns, style, width, level + 1)
-      if (level > 0) {
-        text = (text || '') + (line || '') + ''
-      } else {
+      if (level === 0) {
         this.writeln(line === undefined ? line : line + '', style, width)
+      } else if (line !== undefined) {
+        text = (text || '') + line + ''
       }
       this.setCursor(statement['list'], i + 1)
     }

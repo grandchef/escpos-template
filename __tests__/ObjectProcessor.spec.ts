@@ -237,6 +237,28 @@ describe('print coupon from object data source', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sublist', connection.buffer()))
   })
 
+  it('print optional lines', () => {
+    const template = [
+      { items: [
+        { list: 'list[].sublist', items: [
+          { required: 'list.!first', items: 'list[].sublist[]' },
+        ]},
+      ], list: 'list' },
+    ]
+    const data = {
+      list: [
+        { sublist: [1, 2, 3]},
+        { sublist: [4, 5, 6]},
+        { sublist: [7, 8, 9]},
+      ],
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_optional_lines', connection.buffer()))
+  })
+
   it('print image', () => {
     const template = [
       { whitespace: '_' },
@@ -264,23 +286,5 @@ describe('print coupon formatted', () => {
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sprintf', connection.buffer()))
-  })
-
-  it('format using custom function', () => {
-    const template = [
-      { format: '$ ', items: '3.60' },
-      { format: 'QTD: ', items: ['quantity', 'g'] },
-    ]
-    const data = {
-      quantity: 30,
-      format (format: string, param: any) {
-        return format + `${param}`
-      }
-    }
-    const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
-    const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
-    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_custom_format', connection.buffer()))
   })
 })

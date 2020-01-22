@@ -38,7 +38,9 @@ class ObjectProcessor extends Processor_1.Processor {
                         return position < array.length - 1;
                 }
             }
-            else if (key in current) {
+            else if (typeof current === 'object' &&
+                current !== null &&
+                key in current) {
                 subpath += (subpath ? '.' : '') + key;
                 current = current[key];
             }
