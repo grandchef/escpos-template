@@ -7,6 +7,35 @@ class Processor {
         this.printer = printer;
         this.template = template;
     }
+    styles(stmt, columns) {
+        let style = 0;
+        if (stmt['width'] == '2x') {
+            columns = Math.trunc(columns / 2);
+            style |= escpos_buffer_1.Style.DoubleWidth;
+        }
+        if (stmt['height'] == '2x') {
+            style |= escpos_buffer_1.Style.DoubleHeight;
+        }
+        if ('style' in stmt) {
+            const styles = stmt['style'].split('+');
+            styles.forEach((name) => {
+                if (name == 'bold') {
+                    style |= escpos_buffer_1.Style.Bold;
+                }
+                else if (name == 'italic') {
+                    style |= escpos_buffer_1.Style.Italic;
+                }
+                else if (name == 'underline') {
+                    style |= escpos_buffer_1.Style.Underline;
+                }
+                else if (name == 'condensed') {
+                    style |= escpos_buffer_1.Style.Condensed;
+                    columns = Math.trunc(columns * 4 / 3);
+                }
+            });
+        }
+        return { columns, style };
+    }
     writeln(text, style, columns) {
         if (text === undefined) {
             return;
@@ -32,14 +61,14 @@ class Processor {
         }
         return lines;
     }
-    line(statement, columns, style, width, level) {
+    line(statement, columns, style, width) {
         let left = statement['left'] || '';
         let right = statement['right'] || '';
         let text = '';
         columns -= left.length + right.length;
         width -= left.length + right.length;
         if ('items' in statement) {
-            text = this.statement(statement['items'], columns, style, width, level);
+            text = this.statement(statement['items'], columns, style, width);
             if (text === undefined) {
                 return undefined;
             }
@@ -88,19 +117,19 @@ class Processor {
             }
             text = whitespace.repeat(Math.max(0, spacing)) + text;
         }
-        if (whitespace != ' ') {
+        if (whitespace != ' ' || right) {
             const remaining = (width + columns - text.length % width) % width;
             text += whitespace.repeat(Math.max(0, text.length > 0 ? remaining : width));
         }
         return this.split(left, text, right, width);
     }
-    statement(statement, columns, style, width, level) {
+    statement(statement, columns, style, width) {
         if (typeof statement === 'string') {
             return this.resolve(statement);
         }
         if (Array.isArray(statement)) {
             return statement.reduce((text, stmt) => {
-                const result = this.statement(stmt, columns, style, width, level);
+                const result = this.statement(stmt, columns, style, width);
                 if (result === undefined) {
                     return text;
                 }
@@ -117,56 +146,30 @@ class Processor {
         if ('required' in statement && !this.isAvailable(statement['required'])) {
             return undefined;
         }
-        if (!('list' in statement)) {
-            return this.line(statement, columns, style, width, level);
-        }
         let text = undefined;
-        const count = this.setCursor(statement['list'], 0);
+        const count = 'list' in statement ? this.setCursor(statement['list'], 0) : 1;
         for (let i = 0; i < count; i++) {
-            const line = this.line(statement, columns, style, width, level + 1);
-            if (level === 0) {
-                this.writeln(line === undefined ? line : line + '', style, width);
+            if ('row' in statement) {
+                const { columns, style } = this.styles(statement, this.printer.columns);
+                const line = this.line(statement, columns, style, columns);
+                this.writeln(line === undefined ? line : line + '', style, columns);
             }
-            else if (line !== undefined) {
-                text = (text || '') + line + '';
+            else {
+                const line = this.line(statement, columns, style, width);
+                if (line !== undefined) {
+                    text = (text || '') + line + '';
+                }
             }
-            this.setCursor(statement['list'], i + 1);
+            if ('list' in statement) {
+                this.setCursor(statement['list'], i + 1);
+            }
         }
         return text;
     }
     print() {
-        this.template.forEach((stmt) => {
-            let style = 0;
-            let columns = this.printer.columns;
-            if (typeof stmt === 'object') {
-                if (stmt['width'] == '2x') {
-                    columns = Math.trunc(columns / 2);
-                    style |= escpos_buffer_1.Style.DoubleWidth;
-                }
-                if (stmt['height'] == '2x') {
-                    style |= escpos_buffer_1.Style.DoubleHeight;
-                }
-                if ('style' in stmt) {
-                    const styles = stmt['style'].split('+');
-                    styles.forEach((name) => {
-                        if (name == 'bold') {
-                            style |= escpos_buffer_1.Style.Bold;
-                        }
-                        else if (name == 'italic') {
-                            style |= escpos_buffer_1.Style.Italic;
-                        }
-                        else if (name == 'underline') {
-                            style |= escpos_buffer_1.Style.Underline;
-                        }
-                        else if (name == 'condensed') {
-                            style |= escpos_buffer_1.Style.Condensed;
-                            columns = Math.trunc(columns * 4 / 3);
-                        }
-                    });
-                }
-            }
-            const text = this.statement(stmt, columns, style, columns, 0);
-            this.writeln(text === undefined ? text : text + '', style, columns);
+        this.template.forEach((line) => {
+            const stmt = typeof line === 'object' ? Object.assign(Object.assign({}, line), { row: true }) : { row: true, items: line };
+            this.statement(stmt, this.printer.columns, 0, this.printer.columns);
         });
     }
 }

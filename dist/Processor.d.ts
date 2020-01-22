@@ -6,6 +6,7 @@ export declare abstract class Processor {
     protected abstract setCursor(list: string, position: number): number;
     protected abstract isAvailable(resource: string): boolean;
     protected abstract resolve(resource: string): any;
+    private styles;
     private writeln;
     private split;
     private line;

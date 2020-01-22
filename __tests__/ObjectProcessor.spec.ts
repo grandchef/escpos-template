@@ -204,6 +204,54 @@ describe('print coupon from object data source', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_object_list', connection.buffer()))
   })
 
+  it('print multiline list', () => {
+    const template = [
+      { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
+      { items: [
+        '│', ' CODE', ' DESCRIPTION', { items: [' PRICE', ' │'], align: 'right' }
+      ]},
+      { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
+      { list: 'items', items: [
+        { row: true, style: 'bold', items: [
+          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right' }
+        ], left: '│ ', right: ' │' },
+        { left: '│ ', items: 'items[].observation', right: ' │',
+          row: true, style: 'italic', height: '2x', align: 'center',
+          required: 'items[].observation'
+        }
+      ]},
+      { items: [ '└', { whitespace: '─', align: 'right', items: '┘' } ] },
+    ]
+    const data = {
+      items: [
+        {
+          code: '0001',
+          description: 'Soda 2l',
+          observation: 'Simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the ' +
+            'industry\'s standard dummy text ever since the 1500s',
+          price: '$ 5',
+        },
+        {
+          code: '0002',
+          description: 'Ultra Thin 20000mAh Portable External Battery Charger Power Bank for Cell Phone',
+          price: '$ 10.89',
+        },
+        {
+          code: '0003',
+          description: 'Strawberry Juice 300ml',
+          observation: 'There are many variations of passages of Lorem Ipsum available, but the majority have ' +
+            'suffered alteration in some form, by injected humour',
+          price: '$ 5',
+        }
+      ]
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list', connection.buffer()))
+  })
+
   it('print sublist', () => {
     const template = [
       { items: [

@@ -36,6 +36,33 @@ export abstract class Processor {
    */
   protected abstract resolve(resource: string): any
 
+  private styles (stmt: object, columns: number) {
+    let style: number = 0
+    if (stmt['width'] == '2x') {
+      columns = Math.trunc(columns / 2)
+      style |= Style.DoubleWidth
+    }
+    if (stmt['height'] == '2x') {
+      style |= Style.DoubleHeight
+    }
+    if ('style' in stmt) {
+      const styles = stmt['style'].split('+')
+      styles.forEach((name: string) => {
+        if (name == 'bold') {
+          style |= Style.Bold
+        } else if (name == 'italic') {
+          style |= Style.Italic
+        } else if (name == 'underline') {
+          style |= Style.Underline
+        } else if (name == 'condensed') {
+          style |= Style.Condensed
+          columns = Math.trunc(columns * 4 / 3)
+        }
+      })
+    }
+    return { columns, style }
+  }
+
   private writeln(text: string, style: number, columns: number): void {
     if (text === undefined) {
       return
@@ -63,14 +90,14 @@ export abstract class Processor {
     return lines
   }
 
-  private line(statement: object, columns: number, style: number, width: number, level: number): string {
+  private line(statement: object, columns: number, style: number, width: number): string {
     let left = statement['left'] || ''
     let right = statement['right'] || ''
     let text = ''
     columns -= left.length + right.length
     width -= left.length + right.length
     if ('items' in statement) {
-      text = this.statement(statement['items'], columns, style, width, level)
+      text = this.statement(statement['items'], columns, style, width)
       if (text === undefined) {
         return undefined
       }
@@ -116,7 +143,7 @@ export abstract class Processor {
       }
       text = whitespace.repeat(Math.max(0, spacing)) + text
     }
-    if (whitespace != ' ') {
+    if (whitespace != ' ' || right) {
       const remaining = (width + columns - text.length % width) % width
       text += whitespace.repeat(Math.max(0, text.length > 0 ? remaining : width))
     }
@@ -126,13 +153,13 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  private statement(statement: any, columns: number, style: number, width: number, level: number): string {
+  private statement(statement: any, columns: number, style: number, width: number): string {
     if (typeof statement === 'string') {
       return this.resolve(statement)
     }
     if (Array.isArray(statement)) {
       return statement.reduce((text: string, stmt: any) => {
-        const result = this.statement(stmt, columns, style, width, level)
+        const result = this.statement(stmt, columns, style, width)
         if (result === undefined) {
           return text
         }
@@ -150,19 +177,22 @@ export abstract class Processor {
     if ('required' in statement && !this.isAvailable(statement['required'])) {
       return undefined
     }
-    if (!('list' in statement)) {
-      return this.line(statement, columns, style, width, level)
-    }
     let text = undefined
-    const count = this.setCursor(statement['list'], 0)
+    const count = 'list' in statement ? this.setCursor(statement['list'], 0) : 1
     for (let i = 0; i < count; i++) {
-      const line = this.line(statement, columns, style, width, level + 1)
-      if (level === 0) {
-        this.writeln(line === undefined ? line : line + '', style, width)
-      } else if (line !== undefined) {
-        text = (text || '') + line + ''
+      if ('row' in statement) {
+        const { columns, style } = this.styles(statement, this.printer.columns)
+        const line = this.line(statement, columns, style, columns)
+        this.writeln(line === undefined ? line : line + '', style, columns)
+      } else {
+        const line = this.line(statement, columns, style, width)
+        if (line !== undefined) {
+          text = (text || '') + line + ''
+        }
       }
-      this.setCursor(statement['list'], i + 1)
+      if ('list' in statement) {
+        this.setCursor(statement['list'], i + 1)
+      }
     }
     return text
   }
@@ -171,35 +201,9 @@ export abstract class Processor {
    * Print coupon
    */
   print() {
-    this.template.forEach((stmt: any) => {
-      let style = 0
-      let columns = this.printer.columns
-      if (typeof stmt === 'object') {
-        if (stmt['width'] == '2x') {
-          columns = Math.trunc(columns / 2)
-          style |= Style.DoubleWidth
-        }
-        if (stmt['height'] == '2x') {
-          style |= Style.DoubleHeight
-        }
-        if ('style' in stmt) {
-          const styles = stmt['style'].split('+')
-          styles.forEach((name: string) => {
-            if (name == 'bold') {
-              style |= Style.Bold
-            } else if (name == 'italic') {
-              style |= Style.Italic
-            } else if (name == 'underline') {
-              style |= Style.Underline
-            } else if (name == 'condensed') {
-              style |= Style.Condensed
-              columns = Math.trunc(columns * 4 / 3)
-            }
-          })
-        }
-      }
-      const text = this.statement(stmt, columns, style, columns, 0)
-      this.writeln(text === undefined ? text : text + '', style, columns)
+    this.template.forEach((line: any) => {
+      const stmt = typeof line === 'object' ? { ...line, row: true } : { row: true, items: line }
+      this.statement(stmt, this.printer.columns, 0, this.printer.columns)
     })
   }
 }
