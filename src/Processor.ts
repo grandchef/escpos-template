@@ -46,7 +46,7 @@ export abstract class Processor {
       style |= Style.DoubleHeight
     }
     if ('style' in stmt) {
-      const styles = stmt['style'].split('+')
+      const styles = this.resolve(stmt['style']).split('+')
       styles.forEach((name: string) => {
         if (name == 'bold') {
           style |= Style.Bold
