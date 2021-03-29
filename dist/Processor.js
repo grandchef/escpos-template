@@ -17,7 +17,7 @@ class Processor {
             style |= escpos_buffer_1.Style.DoubleHeight;
         }
         if ('style' in stmt) {
-            const styles = stmt['style'].split('+');
+            const styles = this.resolve(stmt['style']).split('+');
             styles.forEach((name) => {
                 if (name == 'bold') {
                     style |= escpos_buffer_1.Style.Bold;
