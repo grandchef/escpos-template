@@ -43,7 +43,7 @@ describe('print coupon from template', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_whitespace', connection.buffer()))
   })
 
-  it('stylized text', () => {
+  it('stylized text inline', () => {
     const template = [
       { items: 'Bold Text', style: 'bold' },
       { items: 'Italic Text', style: 'italic' },
@@ -54,6 +54,28 @@ describe('print coupon from template', () => {
     const connection = new InMemory()
     const printer = new Printer(new Model('MP-4200 TH'), connection)
     const coupon = new ObjectProcessor({}, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
+  })
+
+  it('stylized text', () => {
+    const template = [
+      { items: 'Bold Text', style: 'bold' },
+      { items: 'Italic Text', style: 'italic' },
+      { items: 'Underline Text', style: 'underline' },
+      { items: 'Condensed Text', style: 'condensed' },
+      { items: 'All Styles', style: 'all' },
+    ]
+    const data = {
+      bold: 'bold',
+      italic: 'italic',
+      underline: 'underline',
+      condensed: 'condensed',
+      all: 'bold+italic+underline+condensed+unknow',
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
