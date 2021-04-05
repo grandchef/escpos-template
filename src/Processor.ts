@@ -90,6 +90,73 @@ export abstract class Processor {
     return lines
   }
 
+  private wordBreak(sentence: string, limit: number): { wordEnd: number, nextWord: number } {
+    let wordEnd = 0,
+        nextWord = 0,
+        i = limit
+    if (i > sentence.length) {
+      i = sentence.length
+    }
+    if (i == 0) {
+      wordEnd = 0
+      if (sentence.length > 0) {
+        nextWord = 1
+      } else {
+        nextWord = 0
+      }
+      return { wordEnd, nextWord }
+    }
+    if (
+      (sentence.length > limit) &&
+      ((sentence[i] == ' ') || (i + 1 > sentence.length) || (sentence[i + 1] != ' '))
+    ) {
+      while ((sentence[i] != ' ') && (i > 0)) {
+        i--
+      }
+      if (i == 0) {
+        i = limit
+      }
+      if (i > sentence.length) {
+        i = sentence.length
+      }
+    }
+    wordEnd = i
+    nextWord = i
+    if (
+      (nextWord == sentence.length) ||
+      ((nextWord + 1 <= sentence.length) && (sentence[nextWord + 1] == ' '))
+    ) {
+      nextWord = i + 1
+    }
+    while ((nextWord <= sentence.length) && (sentence[nextWord] == ' ')) {
+      nextWord++
+    }
+    return { wordEnd, nextWord }
+  }
+
+  private wordWrap(text: string, width: number): Array<string> {
+    let lines = [],
+        i = 0
+    while (i < text.length) {
+      const { wordEnd, nextWord } = this.wordBreak(text.substr(i), width)
+      lines.push(text.substr(i, wordEnd))
+      i += nextWord
+    }
+    return lines
+  }
+
+  private wordWrapJoin(text: string, width: number, whitespace: string): string {
+    const rawLines = this.wordWrap(text, width)
+    let lines = ''
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i]
+      const remaining = width - line.length
+      const spacing = Math.trunc(remaining / 2)
+      lines += whitespace.repeat(spacing) + line + whitespace.repeat(remaining - spacing)
+    }
+    return lines
+  }
+
   private line(statement: object, columns: number, style: number, width: number): string {
     let left = statement['left'] || ''
     let right = statement['right'] || ''
@@ -137,7 +204,7 @@ export abstract class Processor {
       let spacing = 0
       const remaining = (width + columns - text.length % width) % width
       if (statement['align'] == 'center') {
-        spacing = Math.trunc(remaining / 2)
+        text = this.wordWrapJoin(text, width, whitespace)
       } else if (statement['align'] == 'right') {
         spacing = remaining
       }
