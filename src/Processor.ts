@@ -103,55 +103,37 @@ export abstract class Processor {
     sentence: string,
     limit: number,
   ): { wordEnd: number; nextWord: number } {
-    let wordEnd = 0,
-      nextWord = 0,
-      i = limit
-    if (i > sentence.length) {
-      i = sentence.length
-    }
-    if (i == 0) {
-      wordEnd = 0
-      if (sentence.length > 0) {
-        nextWord = 1
-      } else {
-        nextWord = 0
+    let wordEnd = Math.min(limit - 1, sentence.length - 1)
+    let nextWord = wordEnd + 1
+    // acha o começo da palavra que quebrou alinha
+    if (sentence.length > limit) {
+      while (sentence[nextWord] != ' ' && nextWord > 0) {
+        nextWord--
       }
-      return { wordEnd, nextWord }
+      wordEnd = nextWord
     }
-    if (
-      sentence.length > limit &&
-      (sentence[i] == ' ' || i + 1 > sentence.length || sentence[i + 1] != ' ')
-    ) {
-      while (sentence[i] != ' ' && i > 0) {
-        i--
-      }
-      if (i == 0) {
-        i = limit
-      }
-      if (i > sentence.length) {
-        i = sentence.length
-      }
+    // remove os espaços do final
+    while (wordEnd > 0 && sentence[wordEnd] == ' ') {
+      wordEnd--
     }
-    wordEnd = i
-    nextWord = i
-    if (
-      nextWord == sentence.length ||
-      (nextWord + 1 <= sentence.length && sentence[nextWord + 1] == ' ')
-    ) {
-      nextWord = i + 1
+    // a palavra inteira é maior que a linha
+    if (wordEnd == 0) {
+      wordEnd = limit - 1
+      nextWord = wordEnd + 1
     }
-    while (nextWord <= sentence.length && sentence[nextWord] == ' ') {
+    // remove os espaços da próxima palavra
+    while (nextWord < sentence.length && sentence[nextWord] == ' ') {
       nextWord++
     }
     return { wordEnd, nextWord }
   }
 
   private wordWrap(text: string, width: number): string[] {
-    let lines = [],
-      i = 0
+    let i = 0
+    let lines = []
     while (i < text.length) {
       const { wordEnd, nextWord } = this.wordBreak(text.substr(i), width)
-      lines.push(text.substr(i, wordEnd))
+      lines.push(text.substr(i, wordEnd + 1))
       i += nextWord
     }
     return lines
