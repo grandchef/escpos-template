@@ -5,7 +5,7 @@ export abstract class Processor {
   private printer: Printer
   protected template: any[]
 
-  constructor (printer: Printer, template: any[]) {
+  constructor(printer: Printer, template: any[]) {
     this.printer = printer
     this.template = template
   }
@@ -18,7 +18,7 @@ export abstract class Processor {
    *
    * @return count of rows from list
    */
-  protected abstract setCursor (list: string, position: number): number
+  protected abstract setCursor(list: string, position: number): number
 
   /**
    * Check if resource exists and is available
@@ -36,7 +36,7 @@ export abstract class Processor {
    */
   protected abstract resolve(resource: string): any
 
-  private styles (stmt: object, columns: number) {
+  private styles(stmt: object, columns: number) {
     let style: number = 0
     if (stmt['width'] == '2x') {
       columns = Math.trunc(columns / 2)
@@ -56,7 +56,7 @@ export abstract class Processor {
           style |= Style.Underline
         } else if (name == 'condensed') {
           style |= Style.Condensed
-          columns = Math.trunc(columns * 4 / 3)
+          columns = Math.trunc((columns * 4) / 3)
         }
       })
     }
@@ -80,20 +80,32 @@ export abstract class Processor {
     }
   }
 
-  private split(left: string, text: string, right: string, width: number): string {
-    const count = Math.trunc(text.length / width) + ((text.length % width) > 0 ? 1 : 0)
+  private split(
+    left: string,
+    text: string,
+    right: string,
+    width: number,
+  ): string {
+    const count =
+      Math.trunc(text.length / width) + (text.length % width > 0 ? 1 : 0)
     let lines = ''
     for (let i = 0; i < count; i++) {
-      const line = text.substr(i * width, Math.min(width, text.length - i * width))
+      const line = text.substr(
+        i * width,
+        Math.min(width, text.length - i * width),
+      )
       lines += left + line + right
     }
     return lines
   }
 
-  private wordBreak(sentence: string, limit: number): { wordEnd: number, nextWord: number } {
+  private wordBreak(
+    sentence: string,
+    limit: number,
+  ): { wordEnd: number; nextWord: number } {
     let wordEnd = 0,
-        nextWord = 0,
-        i = limit
+      nextWord = 0,
+      i = limit
     if (i > sentence.length) {
       i = sentence.length
     }
@@ -107,10 +119,10 @@ export abstract class Processor {
       return { wordEnd, nextWord }
     }
     if (
-      (sentence.length > limit) &&
-      ((sentence[i] == ' ') || (i + 1 > sentence.length) || (sentence[i + 1] != ' '))
+      sentence.length > limit &&
+      (sentence[i] == ' ' || i + 1 > sentence.length || sentence[i + 1] != ' ')
     ) {
-      while ((sentence[i] != ' ') && (i > 0)) {
+      while (sentence[i] != ' ' && i > 0) {
         i--
       }
       if (i == 0) {
@@ -123,12 +135,12 @@ export abstract class Processor {
     wordEnd = i
     nextWord = i
     if (
-      (nextWord == sentence.length) ||
-      ((nextWord + 1 <= sentence.length) && (sentence[nextWord + 1] == ' '))
+      nextWord == sentence.length ||
+      (nextWord + 1 <= sentence.length && sentence[nextWord + 1] == ' ')
     ) {
       nextWord = i + 1
     }
-    while ((nextWord <= sentence.length) && (sentence[nextWord] == ' ')) {
+    while (nextWord <= sentence.length && sentence[nextWord] == ' ') {
       nextWord++
     }
     return { wordEnd, nextWord }
@@ -136,7 +148,7 @@ export abstract class Processor {
 
   private wordWrap(text: string, width: number): Array<string> {
     let lines = [],
-        i = 0
+      i = 0
     while (i < text.length) {
       const { wordEnd, nextWord } = this.wordBreak(text.substr(i), width)
       lines.push(text.substr(i, wordEnd))
@@ -145,19 +157,31 @@ export abstract class Processor {
     return lines
   }
 
-  private wordWrapJoin(text: string, width: number, whitespace: string): string {
+  private wordWrapJoin(
+    text: string,
+    width: number,
+    whitespace: string,
+  ): string {
     const rawLines = this.wordWrap(text, width)
     let lines = ''
     for (let i = 0; i < rawLines.length; i++) {
       const line = rawLines[i]
       const remaining = width - line.length
       const spacing = Math.trunc(remaining / 2)
-      lines += whitespace.repeat(spacing) + line + whitespace.repeat(remaining - spacing)
+      lines +=
+        whitespace.repeat(spacing) +
+        line +
+        whitespace.repeat(remaining - spacing)
     }
     return lines
   }
 
-  private line(statement: object, columns: number, style: number, width: number): string {
+  private line(
+    statement: object,
+    columns: number,
+    style: number,
+    width: number,
+  ): string {
     let left = statement['left'] || ''
     let right = statement['right'] || ''
     let text = ''
@@ -193,7 +217,7 @@ export abstract class Processor {
       return undefined
     }
     if ('format' in statement) {
-      text = sprintf(statement['format'], text);
+      text = sprintf(statement['format'], text)
     }
     text = text + ''
     let whitespace = ' '
@@ -202,7 +226,7 @@ export abstract class Processor {
     }
     if ('align' in statement) {
       let spacing = 0
-      const remaining = (width + columns - text.length % width) % width
+      const remaining = (width + columns - (text.length % width)) % width
       if (statement['align'] == 'center') {
         text = this.wordWrapJoin(text, width, whitespace)
       } else if (statement['align'] == 'right') {
@@ -211,8 +235,10 @@ export abstract class Processor {
       text = whitespace.repeat(Math.max(0, spacing)) + text
     }
     if (whitespace != ' ' || right) {
-      const remaining = (width + columns - text.length % width) % width
-      text += whitespace.repeat(Math.max(0, text.length > 0 ? remaining : width))
+      const remaining = (width + columns - (text.length % width)) % width
+      text += whitespace.repeat(
+        Math.max(0, text.length > 0 ? remaining : width),
+      )
     }
     return this.split(left, text, right, width)
   }
@@ -220,7 +246,12 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  private statement(statement: any, columns: number, style: number, width: number): string {
+  private statement(
+    statement: any,
+    columns: number,
+    style: number,
+    width: number,
+  ): string {
     if (typeof statement === 'string') {
       return this.resolve(statement)
     }
@@ -233,7 +264,7 @@ export abstract class Processor {
         text = (text || '') + `${result}`
         if (text.length > columns) {
           // calculate free new lines spacing
-          columns = width - text.length % width
+          columns = width - (text.length % width)
         } else {
           // same line space remaining
           columns -= `${result}`.length
@@ -269,7 +300,10 @@ export abstract class Processor {
    */
   print() {
     this.template.forEach((line: any) => {
-      const stmt = typeof line === 'object' ? { ...line, row: true } : { row: true, items: line }
+      const stmt =
+        typeof line === 'object'
+          ? { ...line, row: true }
+          : { row: true, items: line }
       this.statement(stmt, this.printer.columns, 0, this.printer.columns)
     })
   }
