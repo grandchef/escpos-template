@@ -43,6 +43,22 @@ describe('print coupon from template', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_whitespace', connection.buffer()))
   })
 
+  it('print text with word wrap', () => {
+    const template = [
+      { items: 'Suspendisse finibus ligula interdum, finibus augue vel, condimentum felis.', style: 'bold' },
+      { items: 'Suspendisse.finibus-ligula_interdum,finibus-augue_vel,condimentum-felis.', align: 'left' },
+      { items: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', align: 'center', width: '2x' },
+      { items: 'Lorem-ipsum-dolorSitAmet,consectetur-adipiscing-elit.', align: 'center', height: '2x' },
+      { items: 'Suspendisse finibus ligula interdum, finibus augue vel, condimentum felis.', align: 'right' },
+      { items: 'Suspendisse.finibus-ligula_interdum,finibus-augue_vel,condimentum-felis.', align: 'right' },
+    ]
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor({}, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_word_wrap', connection.buffer()))
+  })
+
   it('stylized text inline', () => {
     const template = [
       { items: 'Bold Text', style: 'bold' },

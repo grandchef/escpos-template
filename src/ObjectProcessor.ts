@@ -6,7 +6,7 @@ export class ObjectProcessor extends Processor {
   private positions: Map<string, number>
   private lists: Map<string, any[]>
 
-  constructor (source: object, printer: Printer, template: any[]) {
+  constructor(source: object, printer: Printer, template: any[]) {
     super(printer, template)
     this.source = source
     this.positions = new Map<string, number>()
@@ -15,7 +15,7 @@ export class ObjectProcessor extends Processor {
 
   protected query(obj: object, path: string): any {
     let normalized = path.replace(/\[(\w*)\]/g, '.$1') // convert indexes to properties
-    normalized = normalized.replace(/^\./, '')         // strip a leading dot
+    normalized = normalized.replace(/^\./, '') // strip a leading dot
     const keys = normalized.split('.')
     let subpath = ''
     let current: any = obj
@@ -23,7 +23,10 @@ export class ObjectProcessor extends Processor {
       const key = keys[i]
       if (Array.isArray(current)) {
         const array = current
-        const position = (key == '' || isNaN(Number(key))) ? this.positions.get(subpath) || 0 : Number(key)
+        const position =
+          key == '' || isNaN(Number(key))
+            ? this.positions.get(subpath) || 0
+            : Number(key)
         subpath += '.' + key
         current = current[position]
         switch (key) {
@@ -58,7 +61,7 @@ export class ObjectProcessor extends Processor {
 
   protected setCursor(list: string, position: number): number {
     let normalized = list.replace(/\[(\w*)\]/g, '.$1') // convert indexes to properties
-    normalized = normalized.replace(/^\./, '')         // strip a leading dot
+    normalized = normalized.replace(/^\./, '') // strip a leading dot
     this.positions.set(normalized, position)
     let result = this.lists.get(normalized)
     if (result === undefined) {
@@ -75,7 +78,11 @@ export class ObjectProcessor extends Processor {
 
   protected isAvailable(resource: string): boolean {
     const result = this.query(this.source, resource)
-    return result && result !== undefined && (!Array.isArray(result) || result.length > 0)
+    return (
+      result &&
+      result !== undefined &&
+      (!Array.isArray(result) || result.length > 0)
+    )
   }
 
   protected resolve(resource: string): any {
