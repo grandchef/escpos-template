@@ -146,7 +146,7 @@ export abstract class Processor {
     return { wordEnd, nextWord }
   }
 
-  private wordWrap(text: string, width: number): Array<string> {
+  private wordWrap(text: string, width: number): string[] {
     let lines = [],
       i = 0
     while (i < text.length) {
