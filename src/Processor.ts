@@ -85,6 +85,7 @@ export abstract class Processor {
     text: string,
     right: string,
     width: number,
+    whitespace: string,
   ): string {
     const count =
       Math.trunc(text.length / width) + (text.length % width > 0 ? 1 : 0)
@@ -94,7 +95,9 @@ export abstract class Processor {
         i * width,
         Math.min(width, text.length - i * width),
       )
-      lines += left + line + right
+      const spacing = right.length > 0 ? width - line.length : 0
+      lines += left + line
+      lines += whitespace.repeat(spacing) + right
     }
     return lines
   }
@@ -102,43 +105,54 @@ export abstract class Processor {
   private wordBreak(
     sentence: string,
     limit: number,
+    breakChar: string,
   ): { wordEnd: number; nextWord: number } {
     let wordEnd = Math.min(limit - 1, sentence.length - 1)
     let nextWord = wordEnd + 1
     // acha o começo da palavra que quebrou alinha
     if (sentence.length > limit) {
-      while (sentence[nextWord] != ' ' && nextWord > 0) {
+      while (sentence[nextWord] != breakChar && nextWord > 0) {
         nextWord--
       }
       wordEnd = nextWord
     }
     // remove os espaços do final
-    while (wordEnd > 0 && sentence.length > limit && sentence[wordEnd] == ' ') {
+    while (wordEnd > 0 && sentence.length > limit && sentence[wordEnd] == breakChar) {
       wordEnd--
     }
     // a palavra inteira é maior que a linha
     if (wordEnd == 0) {
-      wordEnd = limit - 1
+      wordEnd = -1
       nextWord = wordEnd + 1
     }
     // remove os espaços da próxima palavra
-    while (nextWord < sentence.length && sentence[nextWord] == ' ') {
+    while (nextWord < sentence.length && sentence[nextWord] == breakChar) {
       nextWord++
     }
     return { wordEnd, nextWord }
   }
 
-  private wordWrap(text: string, columns: number, width: number): string[] {
+  private wordWrap(
+    text: string,
+    columns: number,
+    width: number,
+    breakChar: string,
+  ): string[] {
     let i = 0
     let lines = []
     while (i < text.length) {
       const currentColumns = lines.length == 0 ? columns : width
+      const remainingText = text.substr(i)
       const { wordEnd, nextWord } = this.wordBreak(
-        text.substr(i),
+        remainingText,
         currentColumns,
+        breakChar,
       )
-      lines.push(text.substr(i, wordEnd + 1))
-      i += nextWord
+      const lengthToCopy = wordEnd < 0
+        ? (currentColumns < width && remainingText.length > currentColumns ? 0 : width)
+        : wordEnd + 1
+      lines.push(text.substr(i, lengthToCopy))
+      i += Math.max(nextWord, lengthToCopy)
     }
     return lines
   }
@@ -149,8 +163,9 @@ export abstract class Processor {
     width: number,
     whitespace: string,
     align: string,
+    breakChar: string = ' ',
   ): string {
-    const rawLines = this.wordWrap(text, columns, width)
+    const rawLines = this.wordWrap(text, columns, width, breakChar)
     let lines = ''
     for (let i = 0; i < rawLines.length; i++) {
       const currentColumns = i == 0 ? columns : width
@@ -163,16 +178,10 @@ export abstract class Processor {
         spacing = remaining
       }
       lines += whitespace.repeat(Math.max(0, spacing)) + line
-      if (align == 'center') {
+      // adiciona espaços na direita antes da última linha
+      if (i < rawLines.length - 1) {
         lines += whitespace.repeat(Math.max(0, remaining - spacing))
       }
-    }
-    if (whitespace != ' ' || align == 'right') {
-      const currentColumns = lines.length > 1 ? width : columns
-      const remaining = currentColumns - lines.length
-      lines += whitespace.repeat(
-        Math.max(0, lines.length > 0 ? remaining : currentColumns),
-      )
     }
     return lines
   }
@@ -229,8 +238,16 @@ export abstract class Processor {
     if ('align' in statement) {
       align = statement['align']
     }
-    text = this.wordWrapJoin(text, columns, width, whitespace, align)
-    return this.split(left, text, right, width)
+    if (align != 'left') {
+      const breakChar = !('wrap' in statement) || statement['wrap'] ? ' ' : ''
+      text = this.wordWrapJoin(text, columns, width, whitespace, align, breakChar)
+    }
+    if (whitespace != ' ') {
+      const remaining = width - (text.length % width)
+      const spacing = text.length > 0 ? remaining % width : width
+      text += whitespace.repeat(spacing)
+    }
+    return this.split(left, text, right, width, whitespace)
   }
 
   /**
@@ -246,16 +263,21 @@ export abstract class Processor {
       return this.resolve(statement)
     }
     if (Array.isArray(statement)) {
+      const initialColumns = columns
       return statement.reduce((text: string, stmt: any) => {
         const result = this.statement(stmt, columns, style, width)
         if (result === undefined) {
           return text
         }
         text = (text || '') + `${result}`
-        if (text.length > columns) {
-          // calculate free new lines spacing
-          const { wordEnd } = this.wordBreak(text, width)
-          columns = wordEnd + 1
+        if (text.length > width) {
+          // Calculate free new lines spacing
+          if (typeof stmt === 'object' && 'align' in stmt && stmt['align'] != 'left') {
+            columns = width - (text.length % width)
+          } else {
+            text = this.wordWrapJoin(text, initialColumns, width, ' ', 'left')
+            columns = width - (text.length % width)
+          }
         } else {
           // same line space remaining
           columns -= `${result}`.length
