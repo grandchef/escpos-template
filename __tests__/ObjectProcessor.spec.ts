@@ -211,7 +211,7 @@ describe('print coupon from object data source', () => {
       ]},
       { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
       { list: 'items', items: [
-        'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right' }
+        'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right', wrap: false }
       ], left: '│ ', right: ' │'},
       { items: [ '└', { whitespace: '─', align: 'right', items: '┘' } ] },
     ]
@@ -251,7 +251,7 @@ describe('print coupon from object data source', () => {
       { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
       { list: 'items', items: [
         { row: true, style: 'bold', items: [
-          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right' }
+          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right', wrap: false }
         ], left: '│ ', right: ' │' },
         { left: '│ ', items: 'items[].observation', right: ' │',
           row: true, style: 'italic', height: '2x', align: 'center',

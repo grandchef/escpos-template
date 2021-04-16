@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "name": "Launch",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "runtimeArgs": [
+        "test:debug"
+      ],
+      "runtimeExecutable": "yarn",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    {
+      "name": "Attach",
+      "port": 9229,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    }
+  ]
+}
