@@ -117,7 +117,11 @@ export abstract class Processor {
       wordEnd = nextWord
     }
     // remove os espaços do final
-    while (wordEnd > 0 && sentence.length > limit && sentence[wordEnd] == breakChar) {
+    while (
+      wordEnd > 0 &&
+      sentence.length > limit &&
+      sentence[wordEnd] == breakChar
+    ) {
       wordEnd--
     }
     // a palavra inteira é maior que a linha
@@ -148,9 +152,12 @@ export abstract class Processor {
         currentColumns,
         breakChar,
       )
-      const lengthToCopy = wordEnd < 0
-        ? (currentColumns < width && remainingText.length > currentColumns ? 0 : width)
-        : wordEnd + 1
+      const lengthToCopy =
+        wordEnd < 0
+          ? currentColumns < width && remainingText.length > currentColumns
+            ? 0
+            : width
+          : wordEnd + 1
       lines.push(text.substr(i, lengthToCopy))
       i += Math.max(nextWord, lengthToCopy)
     }
@@ -240,7 +247,14 @@ export abstract class Processor {
     }
     if (align != 'left') {
       const breakChar = !('wrap' in statement) || statement['wrap'] ? ' ' : ''
-      text = this.wordWrapJoin(text, columns, width, whitespace, align, breakChar)
+      text = this.wordWrapJoin(
+        text,
+        columns,
+        width,
+        whitespace,
+        align,
+        breakChar,
+      )
     }
     if (whitespace != ' ') {
       const remaining = width - (text.length % width)
@@ -272,7 +286,11 @@ export abstract class Processor {
         text = (text || '') + `${result}`
         if (text.length > width) {
           // Calculate free new lines spacing
-          if (typeof stmt === 'object' && 'align' in stmt && stmt['align'] != 'left') {
+          if (
+            typeof stmt === 'object' &&
+            'align' in stmt &&
+            stmt['align'] != 'left'
+          ) {
             columns = width - (text.length % width)
           } else {
             text = this.wordWrapJoin(text, initialColumns, width, ' ', 'left')
