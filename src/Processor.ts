@@ -257,8 +257,8 @@ export abstract class Processor {
       )
     }
     if (whitespace != ' ') {
-      const remaining = width - (text.length % width)
-      const spacing = text.length > 0 ? remaining % width : width
+      const remaining = columns - (text.length % columns)
+      const spacing = text.length > 0 ? remaining % columns : columns
       text += whitespace.repeat(spacing)
     }
     return this.split(left, text, right, width, whitespace)

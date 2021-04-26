@@ -358,6 +358,18 @@ describe('print coupon from object data source', () => {
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_image', connection.buffer()))
   })
+
+  it('print align right with whitespace', () => {
+    const template = [
+      { items: [ 'Total ', { whitespace: '.', align: 'right', wrap: false, items: [' ', '$ 5.68'] } ] },
+      { width: '2x', items: [ 'Paid ', { whitespace: '.', align: 'right', wrap: false, items: [' ', '$ 2.68'] } ] },
+    ]
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor({}, printer, template)
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_align_right', connection.buffer()))
+  })
 })
 
 describe('print coupon formatted', () => {
