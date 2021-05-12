@@ -1,4 +1,4 @@
-import { Processor } from './Processor'
+import { Processor, Options } from './Processor'
 import { Printer } from 'escpos-buffer'
 
 export class ObjectProcessor extends Processor {
@@ -6,8 +6,8 @@ export class ObjectProcessor extends Processor {
   private positions: Map<string, number>
   private lists: Map<string, any[]>
 
-  constructor(source: object, printer: Printer, template: any[]) {
-    super(printer, template)
+  constructor(source: object, printer: Printer, template: any[], options?: Options) {
+    super(printer, template, options)
     this.source = source
     this.positions = new Map<string, number>()
     this.lists = new Map<string, any[]>()

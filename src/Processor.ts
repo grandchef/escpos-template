@@ -1,13 +1,21 @@
 import { Printer, Align, Style } from 'escpos-buffer'
 import { sprintf } from 'sprintf-js'
+import { remove as removeDiacritics } from 'diacritics'
+
+export interface Options {
+  uppercase?: boolean,
+  removeAccents?: boolean,
+}
 
 export abstract class Processor {
   private printer: Printer
   protected template: any[]
+  private options: Options
 
-  constructor(printer: Printer, template: any[]) {
+  constructor(printer: Printer, template: any[], options?: Options) {
     this.printer = printer
     this.template = template
+    this.options = options
   }
 
   /**
@@ -61,6 +69,27 @@ export abstract class Processor {
       })
     }
     return { columns, style }
+  }
+
+  private toUpperCase (text: string): string {
+    return text.toUpperCase()
+  }
+
+  private removeAccents (text: string): string {
+    return removeDiacritics(text)
+  }
+
+  private applyOptions (text: string): string {
+    if (text === undefined) {
+      return text
+    }
+    if (this.options && this.options.uppercase) {
+      text = this.toUpperCase(text)
+    }
+    if (this.options && this.options.removeAccents) {
+      text = this.removeAccents(text)
+    }
+    return text
   }
 
   private writeln(text: string, style: number, columns: number): void {
@@ -274,7 +303,7 @@ export abstract class Processor {
     width: number,
   ): string {
     if (typeof statement === 'string') {
-      return this.resolve(statement)
+      return this.applyOptions(this.resolve(statement))
     }
     if (Array.isArray(statement)) {
       const initialColumns = columns
@@ -300,6 +329,7 @@ export abstract class Processor {
           // same line space remaining
           columns -= `${result}`.length
         }
+        text = this.applyOptions(text)
         return text
       }, undefined)
     }
@@ -323,6 +353,7 @@ export abstract class Processor {
         this.setCursor(statement['list'], i + 1)
       }
     }
+    text = this.applyOptions(text)
     return text
   }
 

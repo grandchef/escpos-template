@@ -96,6 +96,33 @@ describe('print coupon from template', () => {
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
 
+  it('uppercase text', () => {
+    const template = [ { items: 'UpperCase Text' }]
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor({}, printer, template, { uppercase: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_uppercase', connection.buffer()))
+  })
+
+  it('without accents text', () => {
+    const template = [ { items: 'Ficção Científica' }]
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents', connection.buffer()))
+  })
+
+  it('without accents and uppercase text', () => {
+    const template = [ { items: 'Ficção Científica' }]
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true, uppercase: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents_uppercase', connection.buffer()))
+  })
+
   it('text size', () => {
     const template = [
       { items: 'Double Width', width: '2x' },
@@ -288,6 +315,129 @@ describe('print coupon from object data source', () => {
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list', connection.buffer()))
+  })
+
+  it('print multiline list uppercase', () => {
+    const template = [
+      { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
+      { items: [
+        '│', ' CODE', ' DESCRIPTION', { items: [' PRICE', ' │'], align: 'right' }
+      ]},
+      { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
+      { list: 'items', items: [
+        { row: true, style: 'bold', items: [
+          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right', wrap: false }
+        ], left: '│ ', right: ' │' },
+        { left: '│ ', items: 'items[].observation', right: ' │',
+          row: true, style: 'italic', height: '2x', align: 'center',
+          required: 'items[].observation'
+        }
+      ]},
+      { items: [ '└', { whitespace: '─', align: 'right', items: '┘' } ] },
+    ]
+    const data = {
+      items: [
+        {
+          code: '0001',
+          description: 'Soda 2l',
+          observation: 'Simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the ' +
+            'industry\'s standard dummy text ever since the 1500s',
+          price: '$ 5',
+        },
+        {
+          code: '0002',
+          description: 'Ultra Thin 20000mAh Portable External Battery Charger Power Bank for Cell Phone',
+          price: '$ 10.89',
+        }
+      ]
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template, { uppercase: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_uppercase', connection.buffer()))
+  })
+
+  it('print multiline list without accents', () => {
+    const template = [
+      { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
+      { items: [
+        '│', ' CODE', ' DESCRIPTION', { items: [' PRICE', ' │'], align: 'right' }
+      ]},
+      { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
+      { list: 'items', items: [
+        { row: true, style: 'bold', items: [
+          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right', wrap: false }
+        ], left: '│ ', right: ' │' },
+        { left: '│ ', items: 'items[].observation', right: ' │',
+          row: true, style: 'italic', height: '2x', align: 'center',
+          required: 'items[].observation'
+        }
+      ]},
+      { items: [ '└', { whitespace: '─', align: 'right', items: '┘' } ] },
+    ]
+    const data = {
+      items: [
+        {
+          code: '0001',
+          description: 'Sóda 2l',
+          observation: 'Simply dúmmy text of the printing and typesetting industry. Lorem Ipsum has been the ' +
+            'industry\'s stândard dûmmy text ever sinçe the 1500s',
+          price: '$ 5',
+        },
+        {
+          code: '0002',
+          description: 'Ultra Thin 20000mAh Portable External Battery Çharger Power Bank for Cell Phone',
+          price: '$ 10.89',
+        }
+      ]
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents', connection.buffer()))
+  })
+
+  it('print multiline list without accents and uppercase', () => {
+    const template = [
+      { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
+      { items: [
+        '│', ' CODE', ' DESCRIPTION', { items: [' PRICE', ' │'], align: 'right' }
+      ]},
+      { items: [ '├', { whitespace: '─', align: 'right', items: '┤' } ] },
+      { list: 'items', items: [
+        { row: true, style: 'bold', items: [
+          'items[].code', ' ', 'items[].description', { items: [' ', 'items[].price'], align: 'right', wrap: false }
+        ], left: '│ ', right: ' │' },
+        { left: '│ ', items: 'items[].observation', right: ' │',
+          row: true, style: 'italic', height: '2x', align: 'center',
+          required: 'items[].observation'
+        }
+      ]},
+      { items: [ '└', { whitespace: '─', align: 'right', items: '┘' } ] },
+    ]
+    const data = {
+      items: [
+        {
+          code: '0001',
+          description: 'Sóda 2l',
+          observation: 'Simply dúmmy text of the printing and typesetting industry. Lorem Ipsum has been the ' +
+            'industry\'s stândard dûmmy text ever sinçe the 1500s',
+          price: '$ 5',
+        },
+        {
+          code: '0002',
+          description: 'Ultra Thin 20000mAh Portable External Battery Çharger Power Bank for Cell Phone',
+          price: '$ 10.89',
+        }
+      ]
+    }
+    const connection = new InMemory()
+    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true, uppercase: true })
+    coupon.print()
+    expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents_uppercase', connection.buffer()))
   })
 
   it('print sublist', () => {
