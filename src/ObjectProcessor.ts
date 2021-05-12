@@ -6,7 +6,12 @@ export class ObjectProcessor extends Processor {
   private positions: Map<string, number>
   private lists: Map<string, any[]>
 
-  constructor(source: object, printer: Printer, template: any[], options?: Options) {
+  constructor(
+    source: object,
+    printer: Printer,
+    template: any[],
+    options?: Options,
+  ) {
     super(printer, template, options)
     this.source = source
     this.positions = new Map<string, number>()

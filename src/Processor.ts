@@ -3,8 +3,8 @@ import { sprintf } from 'sprintf-js'
 import { remove as removeDiacritics } from 'diacritics'
 
 export interface Options {
-  uppercase?: boolean,
-  removeAccents?: boolean,
+  uppercase?: boolean
+  removeAccents?: boolean
 }
 
 export abstract class Processor {
@@ -71,15 +71,15 @@ export abstract class Processor {
     return { columns, style }
   }
 
-  private toUpperCase (text: string): string {
+  private toUpperCase(text: string): string {
     return text.toUpperCase()
   }
 
-  private removeAccents (text: string): string {
+  private removeAccents(text: string): string {
     return removeDiacritics(text)
   }
 
-  private applyOptions (text: string): string {
+  private applyOptions(text: string): string {
     if (text === undefined) {
       return text
     }
