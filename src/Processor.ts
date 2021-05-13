@@ -329,7 +329,6 @@ export abstract class Processor {
           // same line space remaining
           columns -= `${result}`.length
         }
-        text = this.applyOptions(text)
         return text
       }, undefined)
     }
@@ -353,7 +352,6 @@ export abstract class Processor {
         this.setCursor(statement['list'], i + 1)
       }
     }
-    text = this.applyOptions(text)
     return text
   }
 
