@@ -44,7 +44,7 @@ export abstract class Processor {
    */
   protected abstract resolve(resource: string): any
 
-  private styles(stmt: object, columns: number) {
+  private styles(stmt: { width: string, height: string, style: string }, columns: number) {
     let style: number = 0
     if (stmt['width'] == '2x') {
       columns = Math.trunc(columns / 2)
@@ -244,9 +244,9 @@ export abstract class Processor {
       if ('align' in statement) {
         reset = true
         if (statement['align'] == 'center') {
-          this.printer.alignment = Align.Center
+          this.printer.setAlignment(Align.Center)
         } else if (statement['align'] == 'right') {
-          this.printer.alignment = Align.Right
+          this.printer.setAlignment(Align.Right)
         } else {
           reset = false
         }
@@ -258,7 +258,7 @@ export abstract class Processor {
         this.printer.draw(this.resolve(statement['data']))
       }
       if (reset) {
-        this.printer.alignment = Align.Left
+        this.printer.setAlignment(Align.Left)
       }
       return undefined
     }
@@ -269,10 +269,10 @@ export abstract class Processor {
     let whitespace = ' '
     let align = 'left'
     if ('whitespace' in statement) {
-      whitespace = statement['whitespace']
+      whitespace = statement['whitespace'] as string
     }
     if ('align' in statement) {
-      align = statement['align']
+      align = statement['align'] as string
     }
     if (align != 'left') {
       const breakChar = !('wrap' in statement) || statement['wrap'] ? ' ' : ''

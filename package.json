@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "diacritics": "^1.3.0",
-    "escpos-buffer": "^1.0.0",
+    "escpos-buffer": "^4.0.2",
+    "escpos-buffer-image": "^1.1.0",
     "sprintf-js": "^1.1.2",
     "tslib": "~1.10.0"
   },

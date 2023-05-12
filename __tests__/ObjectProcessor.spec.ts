@@ -1,9 +1,11 @@
+import * as path from 'path';
 import { load } from './helper'
 import { ObjectProcessor } from '../src'
 import { Model, InMemory, Printer, Image } from 'escpos-buffer'
+import { ImageManager } from 'escpos-buffer-image'
 
 describe('print coupon from template', () => {
-  it('advance lines', () => {
+  it('advance lines', async () => {
     const template = [
       'First Line',
       '',
@@ -11,25 +13,27 @@ describe('print coupon from template', () => {
       'Last Line',
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_advance_lines', connection.buffer()))
   })
 
-  it('text lines coupon', () => {
+  it('text lines coupon', async () => {
     const template = [
       'Line 1',
       'Line 2',
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_lines', connection.buffer()))
   })
 
-  it('whitespace character', () => {
+  it('whitespace character', async () => {
     const template = [
       { whitespace: '-', items: ' Line 1 ', align: 'center' },
       { whitespace: '-', items: ' Line 2', align: 'right' },
@@ -37,13 +41,14 @@ describe('print coupon from template', () => {
       { whitespace: '=' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_whitespace', connection.buffer()))
   })
 
-  it('print text with word wrap', () => {
+  it('print text with word wrap', async () => {
     const template = [
       { items: 'Suspendisse finibus ligula interdum, finibus augue vel, condimentum felis.', style: 'bold' },
       { items: 'Suspendisse.finibus-ligula_interdum,finibus-augue_vel,condimentum-felis.', align: 'left' },
@@ -53,13 +58,14 @@ describe('print coupon from template', () => {
       { items: 'Suspendisse.finibus-ligula_interdum,finibus-augue_vel,condimentum-felis.', align: 'right' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_word_wrap', connection.buffer()))
   })
 
-  it('stylized text inline', () => {
+  it('stylized text inline', async () => {
     const template = [
       { items: 'Bold Text', style: 'bold' },
       { items: 'Italic Text', style: 'italic' },
@@ -68,13 +74,14 @@ describe('print coupon from template', () => {
       { items: 'All Styles', style: 'bold+italic+underline+condensed+unknow' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
 
-  it('stylized text', () => {
+  it('stylized text', async () => {
     const template = [
       { items: 'Bold Text', style: 'bold' },
       { items: 'Italic Text', style: 'italic' },
@@ -90,86 +97,94 @@ describe('print coupon from template', () => {
       all: 'bold+italic+underline+condensed+unknow',
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
 
-  it('uppercase text', () => {
+  it('uppercase text', async () => {
     const template = [ { items: 'UpperCase Text' }]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { uppercase: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_uppercase', connection.buffer()))
   })
 
-  it('without accents text', () => {
+  it('without accents text', async () => {
     const template = [ { items: 'Ficção Científica' }]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents', connection.buffer()))
   })
 
-  it('without accents and uppercase text', () => {
+  it('without accents and uppercase text', async () => {
     const template = [ { items: 'Ficção Científica' }]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true, uppercase: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents_uppercase', connection.buffer()))
   })
 
-  it('text size', () => {
+  it('text size', async () => {
     const template = [
       { items: 'Double Width', width: '2x' },
       { items: 'Double Height', height: '2x' },
       { items: 'Double Width and Height', width: '2x', height: '2x' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_size', connection.buffer()))
   })
 
-  it('print qrcode', () => {
+  it('print qrcode', async () => {
     const template = [
       { whitespace: '_' },
       { type: 'qrcode', data: 'text from qrcode', align: 'left' },
       { whitespace: '-' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode', connection.buffer()))
   })
 
-  it('print qrcode align right', () => {
+  it('print qrcode align right', async () => {
     const template = [
       { whitespace: '_' },
       { type: 'qrcode', data: 'text from qrcode', align: 'right' },
       { whitespace: '-' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode_right', connection.buffer()))
   })
 
-  it('print qrcode align center', () => {
+  it('print qrcode align center', async () => {
     const template = [
       { whitespace: '_' },
       { type: 'qrcode', data: 'text from qrcode', align: 'center' },
       { whitespace: '-' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode_center', connection.buffer()))
@@ -177,7 +192,7 @@ describe('print coupon from template', () => {
 })
 
 describe('print coupon from object data source', () => {
-  it('print text from object path', () => {
+  it('print text from object path', async () => {
     const template = [
       { items: 'company.title', align: 'center' },
       'company.address',
@@ -189,13 +204,14 @@ describe('print coupon from object data source', () => {
       }
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_object_path', connection.buffer()))
   })
 
-  it('print available resource', () => {
+  it('print available resource', async () => {
     const template = [
       { items: 'company.title', align: 'center' },
       { items: 'company.address', required: 'company.address' },
@@ -213,24 +229,26 @@ describe('print coupon from object data source', () => {
       }
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_available_resource', connection.buffer()))
   })
 
-  it('print unavailable', () => {
+  it('print unavailable', async () => {
     const template = [
       { items: 'company.title', list: 'unknow.list' },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_unavailable_resource', connection.buffer()))
   })
 
-  it('print text list', () => {
+  it('print text list', async () => {
     const template = [
       { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
       { items: [
@@ -262,14 +280,15 @@ describe('print coupon from object data source', () => {
       ]
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
-    printer.columns = 48
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
+    printer.setColumns(48)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_object_list', connection.buffer()))
   })
 
-  it('print multiline list', () => {
+  it('print multiline list', async () => {
     const template = [
       { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
       { items: [
@@ -311,13 +330,14 @@ describe('print coupon from object data source', () => {
       ]
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list', connection.buffer()))
   })
 
-  it('print multiline list uppercase', () => {
+  it('print multiline list uppercase', async () => {
     const template = [
       { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
       { items: [
@@ -352,13 +372,14 @@ describe('print coupon from object data source', () => {
       ]
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { uppercase: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_uppercase', connection.buffer()))
   })
 
-  it('print multiline list without accents', () => {
+  it('print multiline list without accents', async () => {
     const template = [
       { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
       { items: [
@@ -393,13 +414,14 @@ describe('print coupon from object data source', () => {
       ]
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents', connection.buffer()))
   })
 
-  it('print multiline list without accents and uppercase', () => {
+  it('print multiline list without accents and uppercase', async () => {
     const template = [
       { items: [ '┌', { whitespace: '─', align: 'right', items: '┐' } ] },
       { items: [
@@ -434,13 +456,14 @@ describe('print coupon from object data source', () => {
       ]
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true, uppercase: true })
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents_uppercase', connection.buffer()))
   })
 
-  it('print sublist', () => {
+  it('print sublist', async () => {
     const template = [
       { items: [
         'Sublist ',
@@ -467,13 +490,14 @@ describe('print coupon from object data source', () => {
       single: ['first element', 'middle element', 'last element']
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sublist', connection.buffer()))
   })
 
-  it('print optional lines', () => {
+  it('print optional lines', async () => {
     const template = [
       { items: [
         { list: 'list[].sublist', items: [
@@ -489,33 +513,40 @@ describe('print coupon from object data source', () => {
       ],
     }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_optional_lines', connection.buffer()))
   })
 
-  it('print image', () => {
+  it('print image', async () => {
     const template = [
       { whitespace: '_' },
       { type: 'image', data: 'image' },
       { whitespace: '-' },
     ]
-    const image = new Image(load('sample.png'))
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const imageManager = new ImageManager();
+    const imageData = await imageManager.loadImage(
+      path.join(__dirname, 'resources/sample.png'),
+    );
+    const image = new Image(imageData)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({ image }, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_image', connection.buffer()))
   })
 
-  it('print align right with whitespace', () => {
+  it('print align right with whitespace', async () => {
     const template = [
       { items: [ 'Total ', { whitespace: '.', align: 'right', wrap: false, items: [' ', '$ 5.68'] } ] },
       { width: '2x', items: [ 'Paid ', { whitespace: '.', align: 'right', wrap: false, items: [' ', '$ 2.68'] } ] },
     ]
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_align_right', connection.buffer()))
@@ -523,14 +554,15 @@ describe('print coupon from object data source', () => {
 })
 
 describe('print coupon formatted', () => {
-  it('format using sprintf', () => {
+  it('format using sprintf', async () => {
     const template = [
       { format: '%4s', items: '1/2' },
       { format: '%06d', items: 'code' },
     ]
     const data = { code: 123 }
     const connection = new InMemory()
-    const printer = new Printer(new Model('MP-4200 TH'), connection)
+    const model = new Model('MP-4200 TH')
+    const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
     coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sprintf', connection.buffer()))
