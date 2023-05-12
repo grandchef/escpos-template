@@ -92,7 +92,7 @@ export abstract class Processor {
     return text
   }
 
-  private writeln(text: string, style: number, columns: number): void {
+  private async writeln(text: string, style: number, columns: number): Promise<void> {
     if (text === undefined) {
       return
     }
@@ -101,11 +101,11 @@ export abstract class Processor {
     while (index < len) {
       const copy_len = Math.min(columns, len - index)
       const copy = text.substr(index, copy_len)
-      this.printer.writeln(copy, style)
+      await this.printer.writeln(copy, style)
       index += copy_len
     }
     if (len == 0) {
-      this.printer.feed()
+      await this.printer.feed()
     }
   }
 
@@ -222,19 +222,19 @@ export abstract class Processor {
     return lines
   }
 
-  private line(
+  private async line(
     statement: object,
     columns: number,
     style: number,
     width: number,
-  ): string {
+  ): Promise<string> {
     let left = statement['left'] || ''
     let right = statement['right'] || ''
     let text = ''
     columns -= left.length + right.length
     width -= left.length + right.length
     if ('items' in statement) {
-      text = this.statement(statement['items'], columns, style, width)
+      text = await this.statement(statement['items'], columns, style, width)
       if (text === undefined) {
         return undefined
       }
@@ -244,21 +244,21 @@ export abstract class Processor {
       if ('align' in statement) {
         reset = true
         if (statement['align'] == 'center') {
-          this.printer.setAlignment(Align.Center)
+          await this.printer.setAlignment(Align.Center)
         } else if (statement['align'] == 'right') {
-          this.printer.setAlignment(Align.Right)
+          await this.printer.setAlignment(Align.Right)
         } else {
           reset = false
         }
       }
       // write text left or right of qrcode or image
       if (statement['type'] == 'qrcode') {
-        this.printer.qrcode(this.resolve(statement['data']))
+        await this.printer.qrcode(this.resolve(statement['data']))
       } else {
-        this.printer.draw(this.resolve(statement['data']))
+        await this.printer.draw(this.resolve(statement['data']))
       }
       if (reset) {
-        this.printer.setAlignment(Align.Left)
+        await this.printer.setAlignment(Align.Left)
       }
       return undefined
     }
@@ -296,19 +296,19 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  private statement(
+  private async statement(
     statement: any,
     columns: number,
     style: number,
     width: number,
-  ): string {
+  ): Promise<string> {
     if (typeof statement === 'string') {
       return this.applyOptions(this.resolve(statement))
     }
     if (Array.isArray(statement)) {
       const initialColumns = columns
-      return statement.reduce((text: string, stmt: any) => {
-        const result = this.statement(stmt, columns, style, width)
+      return statement.reduce(async (text: string, stmt: any) => {
+        const result = await this.statement(stmt, columns, style, width)
         if (result === undefined) {
           return text
         }
@@ -340,10 +340,10 @@ export abstract class Processor {
     for (let i = 0; i < count; i++) {
       if ('row' in statement) {
         const { columns, style } = this.styles(statement, this.printer.columns)
-        const line = this.line(statement, columns, style, columns)
-        this.writeln(line === undefined ? line : line + '', style, columns)
+        const line = await this.line(statement, columns, style, columns)
+        await this.writeln(line === undefined ? line : line + '', style, columns)
       } else {
-        const line = this.line(statement, columns, style, width)
+        const line = await this.line(statement, columns, style, width)
         if (line !== undefined) {
           text = (text || '') + line + ''
         }
@@ -358,13 +358,13 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  print() {
-    this.template.forEach((line: any) => {
+  async print() {
+    await Promise.all(this.template.map(async (line: any) => {
       const stmt =
         typeof line === 'object'
           ? { ...line, row: true }
           : { row: true, items: line }
-      this.statement(stmt, this.printer.columns, 0, this.printer.columns)
-    })
+      await this.statement(stmt, this.printer.columns, 0, this.printer.columns)
+    }))
   }
 }

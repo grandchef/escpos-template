@@ -16,7 +16,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_advance_lines', connection.buffer()))
   })
 
@@ -29,7 +29,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_lines', connection.buffer()))
   })
 
@@ -44,7 +44,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_whitespace', connection.buffer()))
   })
 
@@ -61,7 +61,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_word_wrap', connection.buffer()))
   })
 
@@ -77,7 +77,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
 
@@ -100,7 +100,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_stylized', connection.buffer()))
   })
 
@@ -110,7 +110,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { uppercase: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_uppercase', connection.buffer()))
   })
 
@@ -120,7 +120,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents', connection.buffer()))
   })
 
@@ -130,7 +130,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template, { removeAccents: true, uppercase: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_removed_accents_uppercase', connection.buffer()))
   })
 
@@ -144,7 +144,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_size', connection.buffer()))
   })
 
@@ -158,7 +158,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode', connection.buffer()))
   })
 
@@ -172,7 +172,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode_right', connection.buffer()))
   })
 
@@ -186,7 +186,7 @@ describe('print coupon from template', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_qrcode_center', connection.buffer()))
   })
 })
@@ -207,7 +207,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_text_object_path', connection.buffer()))
   })
 
@@ -232,7 +232,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_available_resource', connection.buffer()))
   })
 
@@ -244,7 +244,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_unavailable_resource', connection.buffer()))
   })
 
@@ -284,7 +284,7 @@ describe('print coupon from object data source', () => {
     const printer = await Printer.CONNECT(model, connection)
     printer.setColumns(48)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_object_list', connection.buffer()))
   })
 
@@ -333,7 +333,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list', connection.buffer()))
   })
 
@@ -375,7 +375,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { uppercase: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_uppercase', connection.buffer()))
   })
 
@@ -417,7 +417,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents', connection.buffer()))
   })
 
@@ -459,7 +459,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template, { removeAccents: true, uppercase: true })
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_multiline_list_removed_accents_uppercase', connection.buffer()))
   })
 
@@ -493,7 +493,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sublist', connection.buffer()))
   })
 
@@ -516,7 +516,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_optional_lines', connection.buffer()))
   })
 
@@ -535,7 +535,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({ image }, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_image', connection.buffer()))
   })
 
@@ -548,7 +548,7 @@ describe('print coupon from object data source', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor({}, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_align_right', connection.buffer()))
   })
 })
@@ -564,7 +564,7 @@ describe('print coupon formatted', () => {
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
     const coupon = new ObjectProcessor(data, printer, template)
-    coupon.print()
+    await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_sprintf', connection.buffer()))
   })
 })
