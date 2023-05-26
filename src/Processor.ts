@@ -100,7 +100,7 @@ export abstract class Processor {
     let index = 0
     while (index < len) {
       const copy_len = Math.min(columns, len - index)
-      const copy = text.substr(index, copy_len)
+      const copy = text.slice(index, copy_len)
       await this.printer.writeln(copy, style)
       index += copy_len
     }
@@ -120,7 +120,7 @@ export abstract class Processor {
       Math.trunc(text.length / width) + (text.length % width > 0 ? 1 : 0)
     let lines = ''
     for (let i = 0; i < count; i++) {
-      const line = text.substr(
+      const line = text.slice(
         i * width,
         Math.min(width, text.length - i * width),
       )
@@ -175,7 +175,7 @@ export abstract class Processor {
     let lines = []
     while (i < text.length) {
       const currentColumns = lines.length == 0 ? columns : width
-      const remainingText = text.substr(i)
+      const remainingText = text.slice(i)
       const { wordEnd, nextWord } = this.wordBreak(
         remainingText,
         currentColumns,
@@ -187,7 +187,7 @@ export abstract class Processor {
             ? 0
             : width
           : wordEnd + 1
-      lines.push(text.substr(i, lengthToCopy))
+      lines.push(text.slice(i, lengthToCopy))
       i += Math.max(nextWord, lengthToCopy)
     }
     return lines
@@ -307,10 +307,11 @@ export abstract class Processor {
     }
     if (Array.isArray(statement)) {
       const initialColumns = columns
-      return statement.reduce(async (text: string, stmt: any) => {
+      let text = undefined
+      for (const stmt of statement) {
         const result = await this.statement(stmt, columns, style, width)
         if (result === undefined) {
-          return text
+          continue
         }
         text = (text || '') + `${result}`
         if (text.length > width) {
@@ -329,8 +330,8 @@ export abstract class Processor {
           // same line space remaining
           columns -= `${result}`.length
         }
-        return text
-      }, undefined)
+      }
+      return text
     }
     if ('required' in statement && !this.isAvailable(statement['required'])) {
       return undefined
@@ -359,12 +360,12 @@ export abstract class Processor {
    * Print coupon
    */
   async print() {
-    await Promise.all(this.template.map(async (line: any) => {
-      const stmt =
-        typeof line === 'object'
-          ? { ...line, row: true }
-          : { row: true, items: line }
+    for (const line of this.template) {
+      const stmt = typeof line === 'object'
+        ? { ...line, row: true }
+        : { row: true, items: line }
+
       await this.statement(stmt, this.printer.columns, 0, this.printer.columns)
-    }))
+    }
   }
 }

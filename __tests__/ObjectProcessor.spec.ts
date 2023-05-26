@@ -282,7 +282,7 @@ describe('print coupon from object data source', () => {
     const connection = new InMemory()
     const model = new Model('MP-4200 TH')
     const printer = await Printer.CONNECT(model, connection)
-    printer.setColumns(48)
+    await printer.setColumns(48)
     const coupon = new ObjectProcessor(data, printer, template)
     await coupon.print()
     expect(connection.buffer()).toStrictEqual(load('mp-4200_th_object_list', connection.buffer()))
