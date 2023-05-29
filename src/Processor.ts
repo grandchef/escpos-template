@@ -44,7 +44,10 @@ export abstract class Processor {
    */
   protected abstract resolve(resource: string): any
 
-  private styles(stmt: { width: string, height: string, style: string }, columns: number) {
+  private styles(
+    stmt: { width: string; height: string; style: string },
+    columns: number,
+  ) {
     let style: number = 0
     if (stmt['width'] == '2x') {
       columns = Math.trunc(columns / 2)
@@ -92,7 +95,11 @@ export abstract class Processor {
     return text
   }
 
-  private async writeln(text: string, style: number, columns: number): Promise<void> {
+  private async writeln(
+    text: string,
+    style: number,
+    columns: number,
+  ): Promise<void> {
     if (text === undefined) {
       return
     }
@@ -342,7 +349,11 @@ export abstract class Processor {
       if ('row' in statement) {
         const { columns, style } = this.styles(statement, this.printer.columns)
         const line = await this.line(statement, columns, style, columns)
-        await this.writeln(line === undefined ? line : line + '', style, columns)
+        await this.writeln(
+          line === undefined ? line : line + '',
+          style,
+          columns,
+        )
       } else {
         const line = await this.line(statement, columns, style, width)
         if (line !== undefined) {
@@ -361,9 +372,10 @@ export abstract class Processor {
    */
   async print() {
     for (const line of this.template) {
-      const stmt = typeof line === 'object'
-        ? { ...line, row: true }
-        : { row: true, items: line }
+      const stmt =
+        typeof line === 'object'
+          ? { ...line, row: true }
+          : { row: true, items: line }
 
       await this.statement(stmt, this.printer.columns, 0, this.printer.columns)
     }
