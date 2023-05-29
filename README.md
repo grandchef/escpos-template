@@ -43,10 +43,10 @@ const template = [
   { whitespace: '=' }
 ]
 
-const imageManager = new ImageManager();
+const imageManager = new ImageManager()
 const imageData = await imageManager.loadImage(
   path.join(__dirname, 'sample.png'),
-);
+)
 const image = new Image(imageData)
 
 const data = {
