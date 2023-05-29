@@ -100,7 +100,7 @@ export abstract class Processor {
     let index = 0
     while (index < len) {
       const copy_len = Math.min(columns, len - index)
-      const copy = text.slice(index, copy_len)
+      const copy = text.substr(index, copy_len)
       await this.printer.writeln(copy, style)
       index += copy_len
     }
@@ -120,7 +120,7 @@ export abstract class Processor {
       Math.trunc(text.length / width) + (text.length % width > 0 ? 1 : 0)
     let lines = ''
     for (let i = 0; i < count; i++) {
-      const line = text.slice(
+      const line = text.substr(
         i * width,
         Math.min(width, text.length - i * width),
       )
@@ -175,7 +175,7 @@ export abstract class Processor {
     let lines = []
     while (i < text.length) {
       const currentColumns = lines.length == 0 ? columns : width
-      const remainingText = text.slice(i)
+      const remainingText = text.substr(i)
       const { wordEnd, nextWord } = this.wordBreak(
         remainingText,
         currentColumns,
@@ -187,7 +187,7 @@ export abstract class Processor {
             ? 0
             : width
           : wordEnd + 1
-      lines.push(text.slice(i, lengthToCopy))
+      lines.push(text.substr(i, lengthToCopy))
       i += Math.max(nextWord, lengthToCopy)
     }
     return lines
