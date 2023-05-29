@@ -48,7 +48,7 @@ export abstract class Processor {
     stmt: { width: string; height: string; style: string },
     columns: number,
   ) {
-    let style: number = 0
+    let style = 0
     if (stmt['width'] == '2x') {
       columns = Math.trunc(columns / 2)
       style |= Style.DoubleWidth
@@ -179,7 +179,7 @@ export abstract class Processor {
     breakChar: string,
   ): string[] {
     let i = 0
-    let lines = []
+    const lines = []
     while (i < text.length) {
       const currentColumns = lines.length == 0 ? columns : width
       const remainingText = text.substr(i)
@@ -235,8 +235,8 @@ export abstract class Processor {
     style: number,
     width: number,
   ): Promise<string> {
-    let left = statement['left'] || ''
-    let right = statement['right'] || ''
+    const left = statement['left'] || ''
+    const right = statement['right'] || ''
     let text = ''
     columns -= left.length + right.length
     width -= left.length + right.length
@@ -370,7 +370,7 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  async print() {
+  async print(): Promise<void> {
     for (const line of this.template) {
       const stmt =
         typeof line === 'object'

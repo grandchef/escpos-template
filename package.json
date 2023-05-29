@@ -21,7 +21,7 @@
     "build": "tsc -d -p tsconfig.release.json",
     "build:watch": "tsc -w -p tsconfig.release.json",
     "lint": "eslint '*/**/*.{js,ts,tsx}'",
-    "style:fix": "prettier --write \"src/**/*.ts\"",
+    "style:fix": "eslint --fix '*/**/*.{js,ts,tsx}'",
     "style:check": "prettier --check \"src/**/*.ts\"",
     "test": "jest --coverage",
     "test:watch": "jest --watch",

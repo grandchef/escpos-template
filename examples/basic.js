@@ -10,23 +10,27 @@ const template = [
   { items: 'coupon.title', align: 'center', style: 'bold+', width: '2x' },
   '',
   { items: 'Qrcode', align: 'right' },
-  { type: 'qrcode', data: 'https://github.com/grandchef/escpos-template', align: 'right' },
+  {
+    type: 'qrcode',
+    data: 'https://github.com/grandchef/escpos-template',
+    align: 'right',
+  },
   '',
   { items: 'picture.title', align: 'center', height: '2x' },
   { type: 'image', data: 'picture.image', align: 'center' },
-  { whitespace: '=' }
+  { whitespace: '=' },
 ]
 
 const image = new Image(path.join(__dirname, 'sample.png'))
 
 const data = {
   coupon: {
-    title: 'Coupon Title'
+    title: 'Coupon Title',
   },
   picture: {
     title: 'Picture Title',
-    image
-  }
+    image,
+  },
 }
 
 const coupon = new ObjectProcessor(data, printer, template)
