@@ -44,8 +44,11 @@ export abstract class Processor {
    */
   protected abstract resolve(resource: string): any
 
-  private styles(stmt: object, columns: number) {
-    let style: number = 0
+  private styles(
+    stmt: { width: string; height: string; style: string },
+    columns: number,
+  ) {
+    let style = 0
     if (stmt['width'] == '2x') {
       columns = Math.trunc(columns / 2)
       style |= Style.DoubleWidth
@@ -92,7 +95,11 @@ export abstract class Processor {
     return text
   }
 
-  private writeln(text: string, style: number, columns: number): void {
+  private async writeln(
+    text: string,
+    style: number,
+    columns: number,
+  ): Promise<void> {
     if (text === undefined) {
       return
     }
@@ -101,11 +108,11 @@ export abstract class Processor {
     while (index < len) {
       const copy_len = Math.min(columns, len - index)
       const copy = text.substr(index, copy_len)
-      this.printer.writeln(copy, style)
+      await this.printer.writeln(copy, style)
       index += copy_len
     }
     if (len == 0) {
-      this.printer.feed()
+      await this.printer.feed()
     }
   }
 
@@ -172,7 +179,7 @@ export abstract class Processor {
     breakChar: string,
   ): string[] {
     let i = 0
-    let lines = []
+    const lines = []
     while (i < text.length) {
       const currentColumns = lines.length == 0 ? columns : width
       const remainingText = text.substr(i)
@@ -222,19 +229,19 @@ export abstract class Processor {
     return lines
   }
 
-  private line(
+  private async line(
     statement: object,
     columns: number,
     style: number,
     width: number,
-  ): string {
-    let left = statement['left'] || ''
-    let right = statement['right'] || ''
+  ): Promise<string> {
+    const left = statement['left'] || ''
+    const right = statement['right'] || ''
     let text = ''
     columns -= left.length + right.length
     width -= left.length + right.length
     if ('items' in statement) {
-      text = this.statement(statement['items'], columns, style, width)
+      text = await this.statement(statement['items'], columns, style, width)
       if (text === undefined) {
         return undefined
       }
@@ -244,21 +251,21 @@ export abstract class Processor {
       if ('align' in statement) {
         reset = true
         if (statement['align'] == 'center') {
-          this.printer.alignment = Align.Center
+          await this.printer.setAlignment(Align.Center)
         } else if (statement['align'] == 'right') {
-          this.printer.alignment = Align.Right
+          await this.printer.setAlignment(Align.Right)
         } else {
           reset = false
         }
       }
       // write text left or right of qrcode or image
       if (statement['type'] == 'qrcode') {
-        this.printer.qrcode(this.resolve(statement['data']))
+        await this.printer.qrcode(this.resolve(statement['data']))
       } else {
-        this.printer.draw(this.resolve(statement['data']))
+        await this.printer.draw(this.resolve(statement['data']))
       }
       if (reset) {
-        this.printer.alignment = Align.Left
+        await this.printer.setAlignment(Align.Left)
       }
       return undefined
     }
@@ -269,10 +276,10 @@ export abstract class Processor {
     let whitespace = ' '
     let align = 'left'
     if ('whitespace' in statement) {
-      whitespace = statement['whitespace']
+      whitespace = statement['whitespace'] as string
     }
     if ('align' in statement) {
-      align = statement['align']
+      align = statement['align'] as string
     }
     if (align != 'left') {
       const breakChar = !('wrap' in statement) || statement['wrap'] ? ' ' : ''
@@ -296,21 +303,22 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  private statement(
+  private async statement(
     statement: any,
     columns: number,
     style: number,
     width: number,
-  ): string {
+  ): Promise<string> {
     if (typeof statement === 'string') {
       return this.applyOptions(this.resolve(statement))
     }
     if (Array.isArray(statement)) {
       const initialColumns = columns
-      return statement.reduce((text: string, stmt: any) => {
-        const result = this.statement(stmt, columns, style, width)
+      let text = undefined
+      for (const stmt of statement) {
+        const result = await this.statement(stmt, columns, style, width)
         if (result === undefined) {
-          return text
+          continue
         }
         text = (text || '') + `${result}`
         if (text.length > width) {
@@ -329,8 +337,8 @@ export abstract class Processor {
           // same line space remaining
           columns -= `${result}`.length
         }
-        return text
-      }, undefined)
+      }
+      return text
     }
     if ('required' in statement && !this.isAvailable(statement['required'])) {
       return undefined
@@ -340,10 +348,14 @@ export abstract class Processor {
     for (let i = 0; i < count; i++) {
       if ('row' in statement) {
         const { columns, style } = this.styles(statement, this.printer.columns)
-        const line = this.line(statement, columns, style, columns)
-        this.writeln(line === undefined ? line : line + '', style, columns)
+        const line = await this.line(statement, columns, style, columns)
+        await this.writeln(
+          line === undefined ? line : line + '',
+          style,
+          columns,
+        )
       } else {
-        const line = this.line(statement, columns, style, width)
+        const line = await this.line(statement, columns, style, width)
         if (line !== undefined) {
           text = (text || '') + line + ''
         }
@@ -358,13 +370,14 @@ export abstract class Processor {
   /**
    * Print coupon
    */
-  print() {
-    this.template.forEach((line: any) => {
+  async print(): Promise<void> {
+    for (const line of this.template) {
       const stmt =
         typeof line === 'object'
           ? { ...line, row: true }
           : { row: true, items: line }
-      this.statement(stmt, this.printer.columns, 0, this.printer.columns)
-    })
+
+      await this.statement(stmt, this.printer.columns, 0, this.printer.columns)
+    }
   }
 }
